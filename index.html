@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Suivi des conteneurs</title>
+<style>
+:root{--bg:#f5e6c4;--glow1:rgba(240,210,150,.45);--glow2:rgba(240,200,110,.45);--card:#faf0da;--tx:#1d3b27;--mut:#6d7561;--bd:#e0c896;--title:#137a45;--g2:#1f9a5a;--btn:#14894d;--btnx:#f6efe1;--sage:#ecd9ac;--deep:#137a45;--sh:0 1px 2px rgba(31,77,46,.06),0 8px 22px rgba(31,77,46,.08);color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:none){:root:not([data-theme="light"]){--bg:#101a14;--glow1:rgba(95,125,99,.25);--glow2:rgba(120,105,60,.18);--card:#1b2c21;--tx:#efe8d6;--mut:#a8b49a;--bd:#2c4233;--title:#b7dcae;--g2:#8fc79a;--btn:#2f6b43;--btnx:#f6efe1;--sage:#5f7d63;--deep:#2f6b43;--sh:none}}
+:root[data-theme="dark"]{--bg:#101a14;--glow1:rgba(95,125,99,.25);--glow2:rgba(120,105,60,.18);--card:#1b2c21;--tx:#efe8d6;--mut:#a8b49a;--bd:#2c4233;--title:#b7dcae;--g2:#8fc79a;--btn:#2f6b43;--btnx:#f6efe1;--sage:#5f7d63;--deep:#2f6b43;--sh:none;color-scheme:dark}
+*{box-sizing:border-box}
+html{height:100%}
+body{margin:0;min-height:100%;background:radial-gradient(800px 480px at 85% -8%,var(--glow1),transparent),radial-gradient(700px 420px at 0% 105%,var(--glow2),transparent),var(--bg);color:var(--tx);font:16px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+main{max-width:960px;margin:0 auto;padding:36px 18px 40px}
+header{text-align:center;margin-bottom:28px}
+.ship{width:40px;height:40px;color:var(--title)}
+h1{font:700 clamp(38px,7vw,58px)/1.05 "Cormorant Garamond",Georgia,"Times New Roman",serif;color:var(--title);margin:8px 0 10px;letter-spacing:.2px}
+header p{margin:0 auto;max-width:560px;color:var(--mut);font-size:14.5px}
+.search{position:relative;max-width:620px;margin:0 auto}
+.search input{width:100%;padding:17px 70px 17px 52px;font:inherit;font-size:17px;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:999px;outline:none;box-shadow:var(--sh);transition:border-color .2s,box-shadow .2s}
+.search input:focus{border-color:var(--g2);box-shadow:0 0 0 5px rgba(63,122,79,.16)}
+.search input::placeholder{color:var(--mut);opacity:.75}
+.search .mg{position:absolute;left:20px;top:50%;width:20px;height:20px;margin-top:-10px;color:var(--mut)}
+.search button{position:absolute;right:7px;top:50%;width:44px;height:44px;margin-top:-22px;border:0;border-radius:50%;background:var(--btn);color:var(--btnx);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .2s}
+.search button:hover{transform:scale(1.08)}
+.search button svg{width:19px;height:19px}
+#hint{max-width:620px;margin:12px auto 0;text-align:center;color:var(--title);font-size:13px}
+#hint[hidden]{display:none}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:30px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{position:relative;display:flex;align-items:center;gap:14px;padding:18px 18px;background:var(--card);border:1px solid var(--bd);border-radius:16px;color:var(--tx);text-decoration:none;box-shadow:var(--sh);transition:transform .3s cubic-bezier(.34,1.56,.64,1),border-color .2s,box-shadow .3s;cursor:pointer}
+.tile:hover,.tile:focus-visible{transform:translateY(-5px);border-color:var(--g2);outline:none;box-shadow:0 14px 28px rgba(31,77,46,.16)}
+.tile:active{transform:translateY(-1px) scale(.98)}
+.tile.hit{border:2px solid var(--deep);padding:17px}
+.ico{flex:0 0 48px;width:48px;height:48px;border-radius:12px;background:var(--sage);display:flex;align-items:center;justify-content:center;color:var(--title);transition:background .3s}
+.tile.hit .ico{background:var(--deep);color:#f6efe1}
+.ico svg{width:24px;height:24px}
+.nm{font-weight:600;font-size:15px;line-height:1.2;transition:color .2s}
+.tile:hover .nm,.tile:focus-visible .nm{color:var(--title)}
+.badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--deep);color:#f6efe1;font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:3px 11px;border-radius:999px;white-space:nowrap}
+footer{text-align:center;color:var(--mut);font-size:12.5px;margin-top:36px}
+.tiles.first .tile{animation:rise .55s ease backwards;animation-delay:calc(var(--i)*55ms)}
+.tile:hover .ico,.tile:focus-visible .ico{animation:wiggle .6s ease forwards;box-shadow:0 0 0 5px rgba(63,122,79,.22)}
+@keyframes wiggle{0%{transform:rotate(0) scale(1)}25%{transform:rotate(-10deg) scale(1.14)}50%{transform:rotate(8deg) scale(1.14)}75%{transform:rotate(-4deg) scale(1.1)}100%{transform:rotate(0) scale(1.08)}}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body><main>
+<header>
+  <svg class="ship" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 30h36l-5 9H11z"/><path d="M14 30v-7h20v7"/><path d="M19 23v-6h10v6"/><path d="M24 17v-5"/></svg>
+  <h1>Suivi des conteneurs</h1>
+  <p>Choisissez la compagnie de votre conteneur pour ouvrir sa page de suivi.</p>
+</header>
+<p id="hint" hidden></p>
+<div class="tiles first" id="g"></div>
+<footer>Un clic ouvre le site de la compagnie.</footer>
+</main>
+<script>
+const BASE=[
+ ["COSCO","https://elines.coscoshipping.com/ebusiness/cargoTracking","COSU"],
+ ["Maersk","https://www.maersk.com/tracking/{n}","MAEU MSKU MRKU"],
+ ["MSC","https://www.msc.com/en/track-a-shipment","MSCU MEDU"],
+ ["CMA CGM","https://www.cma-cgm.com/ebusiness/tracking","CMAU CGMU"],
+ ["Hapag-Lloyd","https://www.hapag-lloyd.com/en/online-business/track/track-by-container-solution.html","HLCU HLXU"],
+ ["ONE","https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking","ONEY"],
+ ["OOCL","https://www.oocl.com/eng/ourservices/eservices/cargotracking/","OOLU OOCU"],
+ ["Evergreen","https://www.shipmentlink.com/servlet/TDB1_CargoTracking.do","EGHU EGSU EISU"],
+ ["ZIM","https://www.zim.com/tools/track-a-shipment","ZIMU"],
+ ["Yang Ming","https://www.yangming.com/e-service/track_trace/track_trace_cargo_tracking.aspx","YMLU"],
+ ["Gold Star Line","https://www.goldstarline.com/","GOSU GSLU GSXU GMOU"],
+ ["PIL","https://www.pilship.com/digital-solutions/?tab=customer&id=track-trace&label=containerTrack&module=TrackTrace","PCIU PILU"]];
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const val=()=>"";
+const link=(u,v)=>u.replace("{n}",encodeURIComponent(v));
+
+function render(){
+  const v=val(),p=v.slice(0,4);let hit=null;
+  $("#g").innerHTML=BASE.map(([nm,u,pre],i)=>{
+    const is=v.length>=4&&(pre||"").split(" ").includes(p);if(is&&!hit)hit=nm;
+    return `<a class="tile${is?" hit":""}" style="--i:${i}" href="${esc(link(u,v))}" data-u="${esc(u)}" data-n="${esc(nm)}">${is?'<span class="badge">Suggérée</span>':""}<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="10" rx="1.5"/><path d="M4 12h16M9 8V5h6v3"/></svg></span><span class="nm">${esc(nm)}</span></a>`}).join("");
+  $("#hint").hidden=!hit;
+  if(hit)$("#hint").textContent="Les 4 premières lettres correspondent à "+hit+". C’est une suggestion : le propriétaire du conteneur n’est pas toujours la compagnie qui le transporte.";
+}
+$("#g").addEventListener("click",async e=>{
+  const a=e.target.closest(".tile");if(!a)return;
+  const v=val();
+  e.preventDefault();
+  if(v){try{await navigator.clipboard.writeText(v)}catch(_){}}
+  location.href=link(a.dataset.u,v);
+});
+function go(){const t=document.querySelector(".tile.hit");if(t)t.click();else{$("#hint").hidden=false;$("#hint").textContent="Choisissez la compagnie ci-dessous."}}
+render();
+</script></body></html>
